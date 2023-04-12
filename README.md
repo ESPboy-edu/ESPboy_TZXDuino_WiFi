@@ -1,4 +1,4 @@
-# ESPboy_TZXDuino_WiFi
+# ESPboy TZXDuino WiFi
 Tape recorder emulation for programs loading to ZX Spectrum for ESPboy (ESP8266)
 
 Arduino based TZX and TAP (currently only ZX spectrum and Amstrad CPC flavour) file player. 

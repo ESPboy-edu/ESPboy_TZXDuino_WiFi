@@ -48,10 +48,11 @@ void WiFiFileManager() {
 
   Serial.print(F("FreeHeap:"));
   Serial.println(ESP.getFreeHeap());
+  delay(1000);
   while (1) {
     serverLoop();
-    //check_key();
-    //if(pad_state_t) ESP.reset();
+    check_key();
+    if(pad_state_t) ESP.reset();
     delay(100);
   }
 }

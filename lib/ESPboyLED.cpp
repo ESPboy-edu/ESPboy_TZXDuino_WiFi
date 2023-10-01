@@ -80,10 +80,12 @@ uint8_t ESPboyLED::getB(){
 }
 
 
+
+
   
-  #define t0h  (32*(F_CPU/80000000))  // 0.4us
-  #define t1h  (64*(F_CPU/80000000))  // 0.8us
-  #define ttot (100*(F_CPU/80000000)) // 1.25us
+  #define t0h  (26*(F_CPU/80000000))  // 0.4us
+  #define t1h  (t0h*2)  // 0.8us
+  #define ttot (t0h*3.125) // 1.25us
 
 
 void ICACHE_RAM_ATTR ESPboyLED::ledset(uint8_t rled, uint8_t gled, uint8_t bled) {
@@ -115,6 +117,7 @@ void ICACHE_RAM_ATTR ESPboyLED::ledset(uint8_t rled, uint8_t gled, uint8_t bled)
     GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, pinMask);      // digitalWrite LOW
     mask>>=1;
   }
+  while((ESP.getCycleCount() - startTime) < ttot);
   os_intr_unlock();
   GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pinMask); 
   mcp->digitalWrite(LEDLOCK, LOW); 

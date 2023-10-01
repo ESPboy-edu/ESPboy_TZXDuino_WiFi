@@ -80,6 +80,7 @@
 //IMPORTANT note: SPIFFS version somehow introduced a gap at 180 seconds into any file, breaking the loading. Moving to LittleFS fixed it
 //IMPORTANT note2: upload TZX files to Little_FS using "Arduino IDE Little_FS uploader" plugin or using WiFi file uploading mode inside the TZX Duino
 
+//01.10.23 file uploader upgraded to full file manager (you can upload/download/delete files on LittleFS - ESP8266 internal flash drive)
 //11.04.23 minor fixes for percentage display and clicks at end of a file, moving to LittleFS, WiFi file transfer
 //10.04.23 quick and dirty port to ESPboy by shiru8bit
 
@@ -92,6 +93,7 @@
 #include <LittleFS.h>
 
 ESPboyInit myESPboy;
+ESPboyLED myESPboyLED;
 //ESPboyTerminalGUI *terminalGUIobj = NULL;
 //ESPboyOTA2 *OTA2obj = NULL;
 
@@ -634,7 +636,7 @@ void config_menu()
     {
       switch (option_cursor)
       {
-        case 0: startServer(); break;
+        case 0: WiFiFileManager(); break;
 
         case 1:
           {
@@ -672,6 +674,8 @@ void setup()
 {
   Serial.begin(115200);
   myESPboy.begin("TZX Duino");
+  myESPboyLED.begin(&myESPboy.mcp);
+  myESPboyLED.off();
 /*
   //Check OTA2
   if (myESPboy.getKeys()&PAD_ACT || myESPboy.getKeys()&PAD_ESC) { 

@@ -6,7 +6,7 @@ for www.ESPboy.com project by RomanS
 #include "ESPboyLED.h"
 
 
-void ESPboyLED::begin(Adafruit_MCP23017 *mcpGUI){
+void ESPboyLED::begin(ESPboyMCP *mcpGUI){
   mcp = mcpGUI;
   pinMode(LEDPIN, OUTPUT);
   mcp->pinMode(LEDLOCK, OUTPUT);

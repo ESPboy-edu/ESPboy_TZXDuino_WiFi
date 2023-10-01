@@ -178,11 +178,10 @@ int check_key()
 {
   pad_state_prev = pad_state;
   pad_state = 0;
+  uint8_t pad_read = myESPboy.mcp.readGPIOAB()&255;
 
   for (int i = 0; i < 8; i++)
-  {
-    if (!myESPboy.mcp.digitalRead(i)) pad_state |= (1 << i);
-  }
+    if (!(pad_read & (1 << i))) pad_state |= (1 << i);
 
   pad_state_t = pad_state ^ pad_state_prev & pad_state;
 

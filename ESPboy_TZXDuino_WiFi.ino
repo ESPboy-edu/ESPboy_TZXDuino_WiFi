@@ -251,13 +251,6 @@ int file_browser(String path, const char* header, char* filename, int filename_l
     if (filter) ++file_count;
   }
 
-  if (!file_count)
-  {
-    printFast(24, 60, "No files found", ST77XX_RED);
-
-    while (1) delay(1000);
-  }
-
   printFast(4, 4, (char*)header, ST77XX_GREEN);
   myESPboy.tft.fillRect(0, 12, 128, 1, ST77XX_WHITE);
 
@@ -269,6 +262,8 @@ int file_browser(String path, const char* header, char* filename, int filename_l
   {
     if (change)
     {
+      if(file_count>0)
+      {
       int pos = file_cursor - FILE_HEIGHT / 2;
 
       if (pos > file_count - FILE_HEIGHT) pos = file_count - FILE_HEIGHT;
@@ -334,7 +329,11 @@ int file_browser(String path, const char* header, char* filename, int filename_l
           if (i >= FILE_HEIGHT) break;
         }
       }
-
+      }
+      else
+      {
+        printFast(24, 60, "No files found", ST77XX_RED);
+      }
       change = false;
     }
 
@@ -362,8 +361,11 @@ int file_browser(String path, const char* header, char* filename, int filename_l
 
     if (pad_state_t & PAD_ACT)
     {
+      if(file_count>0)
+      {
       ret = 0;
       break;
+      }
     }
 
     if (pad_state_t & PAD_ESC)

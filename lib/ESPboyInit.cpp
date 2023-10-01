@@ -5,6 +5,9 @@ https://hackaday.io/project/164830-espboy-games-iot-stem-for-education-fun
 v1.0
 */
 
+#ifndef ESPboy_Init_cpp
+#define ESPboy_Init_cpp
+
 #include "ESPboyInit.h"
 
 ESPboyInit::ESPboyInit(){};
@@ -19,27 +22,31 @@ void ESPboyInit::begin(const char *appName) {
   dac.setVoltage(0, false);
 
 //mcp23017 init for buttons, LED LOCK and TFT Chip Select pins
-  mcp.begin_I2C(MCP23017address);
+  mcp.begin(MCP23017address);
   delay(100);
-  
   for (int i=0;i<8;i++){  
-     mcp.pinMode(i, INPUT_PULLUP);
-	}
+     mcp.pinMode(i, INPUT);
+     mcp.pullUp(i, HIGH);}
+
+//LED init
+  myLED.begin(&this->mcp);
+  myLED.setRGB(0,0,0);
 
 //sound init and test
   pinMode(SOUNDPIN, OUTPUT);
- /* playTone(200, 100); 
-  delay(100);
-  playTone(100, 100);
-  delay(100);
-  noPlayTone();*/
+  //playTone(200, 100); 
+  //delay(100);
+  //playTone(100, 100);
+  //delay(100);
+  //noPlayTone();
   
 //LCD TFT init
   mcp.pinMode(CSTFTPIN, OUTPUT);
   mcp.digitalWrite(CSTFTPIN, LOW);
   tft.begin();
+  tft.setSwapBytes(true);
   delay(100);
-  tft.setRotation(0);
+  //tft.setRotation(0);
   tft.fillScreen(TFT_BLACK);
 
 //draw ESPboylogo  
@@ -53,13 +60,11 @@ void ESPboyInit::begin(const char *appName) {
     dac.setVoltage(bcklt, false);
     delay(10);}
 
+  delay(1000);
+
 //clear TFT and backlit on high
   dac.setVoltage(4095, true);
   tft.fillScreen(TFT_BLACK);
-
-//LED pin LOCK OFF
-  mcp.pinMode(LEDLOCK, OUTPUT);
-  mcp.digitalWrite(LEDLOCK, HIGH); 
 };
 
 
@@ -69,3 +74,5 @@ void ESPboyInit::playTone(uint16_t frq) { tone(SOUNDPIN, frq); }
 void ESPboyInit::noPlayTone() { noTone(SOUNDPIN); }
 
 uint8_t ESPboyInit::getKeys() { return (~mcp.readGPIOAB() & 255); }
+
+#endif

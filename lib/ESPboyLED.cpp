@@ -6,7 +6,7 @@ for www.ESPboy.com project by RomanS
 #include "ESPboyLED.h"
 
 
-void ESPboyLED::begin(Adafruit_MCP23X17 *mcpGUI){
+void ESPboyLED::begin(Adafruit_MCP23017 *mcpGUI){
   mcp = mcpGUI;
   pinMode(LEDPIN, OUTPUT);
   mcp->pinMode(LEDLOCK, OUTPUT);
@@ -80,20 +80,26 @@ uint8_t ESPboyLED::getB(){
 }
 
 
+  
+  #define t0h  (32*(F_CPU/80000000))  // 0.4us
+  #define t1h  (64*(F_CPU/80000000))  // 0.8us
+  #define ttot (100*(F_CPU/80000000)) // 1.25us
+
+
 void ICACHE_RAM_ATTR ESPboyLED::ledset(uint8_t rled, uint8_t gled, uint8_t bled) {
- static uint_fast32_t i, t, c, startTime, pixel, mask, t0h, t1h, ttot;
+ static uint8_t rstore=0xFF, gstore=0xFF, bstore=0xFF;
+ static uint_fast32_t i, t, c, startTime, pixel, mask;
  static uint8_t cpuFreq;
  static const uint32_t pinMask = 1<<LEDPIN;
   
-  GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, pinMask);
-  delay(1);
-
-  mcp->digitalWrite(LEDLOCK, HIGH); 
+  if(rled==rstore && gled==gstore && bled==bstore) return;
   
-  cpuFreq = ESP.getCpuFreqMHz()/80;
-  t0h  = 32*cpuFreq;  // 0.4us
-  t1h  = 64*cpuFreq;  // 0.8us
-  ttot = 100*cpuFreq; // 1.25us
+  rstore=rled;
+  gstore=gled;
+  bstore=bled;
+  
+  GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, pinMask);
+  mcp->digitalWrite(LEDLOCK, HIGH); 
   
   pixel = (gled<<16) + (rled<<8) + bled;
   mask = 0x800000; 
@@ -110,8 +116,6 @@ void ICACHE_RAM_ATTR ESPboyLED::ledset(uint8_t rled, uint8_t gled, uint8_t bled)
     mask>>=1;
   }
   os_intr_unlock();
-  delay(1);
-  GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pinMask);
-
+  GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pinMask); 
   mcp->digitalWrite(LEDLOCK, LOW); 
 }

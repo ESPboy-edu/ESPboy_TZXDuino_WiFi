@@ -77,24 +77,25 @@
 
 */
 
-//important note: SPIFFS version somehow introduced a gap at 180 seconds into any file, breaking the loading
-//moving to LittleFS fixed it
+//IMPORTANT note: SPIFFS version somehow introduced a gap at 180 seconds into any file, breaking the loading. Moving to LittleFS fixed it
+//IMPORTANT note2: upload TZX files to Little_FS using "Arduino IDE Little_FS uploader" plugin or using WiFi file uploading mode inside the TZX Duino
 
 //11.04.23 minor fixes for percentage display and clicks at end of a file, moving to LittleFS, WiFi file transfer
 //10.04.23 quick and dirty port to ESPboy by shiru8bit
 
 #include "lib/ESPboyInit.h"
 #include "lib/ESPboyInit.cpp"
-#include "lib/ESPboyLED.h"
-#include "lib/ESPboyLED.cpp"
+//#include "lib/ESPboyTerminalGUI.h"
+//#include "lib/ESPboyTerminalGUI.cpp"
+//#include "lib/ESPboyOTA2.h"
+//#include "lib/ESPboyOTA2.cpp"
 #include <LittleFS.h>
 
-#include <Adafruit_ST77xx.h>
+ESPboyInit myESPboy;
+//ESPboyTerminalGUI *terminalGUIobj = NULL;
+//ESPboyOTA2 *OTA2obj = NULL;
 
 #include "glcdfont.c"
-
-ESPboyInit myESPboy;
-ESPboyLED myESPboyLED;
 
 #include "Timers.h"
 #include "TZXDuino.h"
@@ -234,7 +235,7 @@ int file_browser(String path, const char* header, char* filename, int filename_l
   memset(filename, 0, filename_len);
   memset(name, 0, sizeof(name));
 
-  myESPboy.tft.fillScreen(ST77XX_BLACK);
+  myESPboy.tft.fillScreen(TFT_BLACK);
 
   fs::Dir dir = LittleFS.openDir(path);
 
@@ -251,8 +252,8 @@ int file_browser(String path, const char* header, char* filename, int filename_l
     if (filter) ++file_count;
   }
 
-  printFast(4, 4, (char*)header, ST77XX_GREEN);
-  myESPboy.tft.fillRect(0, 12, 128, 1, ST77XX_WHITE);
+  printFast(4, 4, (char*)header, TFT_GREEN);
+  myESPboy.tft.fillRect(0, 12, 128, 1, TFT_WHITE);
 
   bool change = true;
   int frame = 0;
@@ -305,15 +306,15 @@ int file_browser(String path, const char* header, char* filename, int filename_l
             else name[j] = ' ';
           }
 
-          printFast(8, sy, name, ST77XX_WHITE);
+          printFast(8, sy, name, TFT_WHITE);
 
-          drawCharFast(2, sy, ' ', ST77XX_WHITE, ST77XX_BLACK);
+          drawCharFast(2, sy, ' ', TFT_WHITE, TFT_BLACK);
 
           if (pos == file_cursor)
           {
             strncpy(filename, entry.name(), filename_len);
 
-            if (frame & 32) drawCharFast(2, sy, 0xdb, ST77XX_WHITE, ST77XX_BLACK);
+            if (frame & 32) drawCharFast(2, sy, 0xdb, TFT_WHITE, TFT_BLACK);
           }
         }
 
@@ -332,7 +333,7 @@ int file_browser(String path, const char* header, char* filename, int filename_l
       }
       else
       {
-        printFast(24, 60, "No files found", ST77XX_RED);
+        printFast(24, 60, "No files found", TFT_RED);
       }
       change = false;
     }
@@ -396,12 +397,12 @@ void play_file(const char* filename)
 {
   char str[21];
 
-  myESPboyLED.setRGB(0, 5, 0);
-  myESPboyLED.on();
+  myESPboy.myLED.setRGB(0, 5, 0);
+  myESPboy.myLED.on();
 
-  myESPboy.tft.fillScreen(ST77XX_BLACK);
-  myESPboy.tft.fillRect(0, 24, 128, 1, ST77XX_WHITE);
-  printFast(4, 32, filename, ST77XX_WHITE);
+  myESPboy.tft.fillScreen(TFT_BLACK);
+  myESPboy.tft.fillRect(0, 24, 128, 1, TFT_WHITE);
+  printFast(4, 32, filename, TFT_WHITE);
   printFast(8, 104, "Arrow to mute sound", 0x7bef);
 
   config_load();
@@ -453,11 +454,11 @@ void play_file(const char* filename)
 
       if (!pauseOn)
       {
-        printFast(4, 16, "Playing", ST77XX_YELLOW);
+        printFast(4, 16, "Playing", TFT_YELLOW);
       }
       else
       {
-        printFast(4, 16, "Paused  ", ST77XX_YELLOW);
+        printFast(4, 16, "Paused  ", TFT_YELLOW);
       }
     }
 
@@ -466,7 +467,7 @@ void play_file(const char* filename)
       prev_newpct = newpct;
 
       sprintf(buf, "%3.3i%/100%%", newpct);
-      printFast(4, 48, buf, ST77XX_WHITE);
+      printFast(4, 48, buf, TFT_WHITE);
     }
 
     if (bytesRead != bytesRead_prev)
@@ -474,7 +475,7 @@ void play_file(const char* filename)
       bytesRead_prev = bytesRead;
 
       sprintf(buf, "%i/%i%b", bytesRead, filesize);
-      printFast(4, 64, buf, ST77XX_WHITE);
+      printFast(4, 64, buf, TFT_WHITE);
     }
 
     check_key();
@@ -501,7 +502,7 @@ void play_file(const char* filename)
   TZXStop();
   LowWrite();
 
-  myESPboyLED.off();
+  myESPboy.myLED.off();
 }
 
 
@@ -550,10 +551,10 @@ void config_menu()
 {
   config_load();
 
-  myESPboy.tft.fillScreen(ST77XX_BLACK);
+  myESPboy.tft.fillScreen(TFT_BLACK);
 
-  printFast(4, 4, "Configuration", ST77XX_YELLOW);
-  myESPboy.tft.fillRect(0, 12, 128, 1, ST77XX_WHITE);
+  printFast(4, 4, "Configuration", TFT_YELLOW);
+  myESPboy.tft.fillRect(0, 12, 128, 1, TFT_WHITE);
 
   int option_cursor = 0;
   bool change = true;
@@ -569,36 +570,36 @@ void config_menu()
 
       for (int i = 0; i < 6; ++i)
       {
-        drawCharFast(2, sy, ' ', ST77XX_WHITE, ST77XX_BLACK);
+        drawCharFast(2, sy, ' ', TFT_WHITE, TFT_BLACK);
 
-        if ((i == option_cursor) && (frame & 32)) drawCharFast(2, sy, 0xdb, ST77XX_WHITE, ST77XX_BLACK);
+        if ((i == option_cursor) && (frame & 32)) drawCharFast(2, sy, 0xdb, TFT_WHITE, TFT_BLACK);
 
         switch (i)
         {
           case 0:
-            printFast(8, sy, "WiFi transfer", ST77XX_WHITE);
+            printFast(8, sy, "WiFi transfer", TFT_WHITE);
             break;
           case 1:
-            printFast(8, sy, "Baud Rate", ST77XX_WHITE);
-            if (config_byte & CFG_BYTE_1200_BAUD) printFast(100, sy, "1200", ST77XX_WHITE);
-            if (config_byte & CFG_BYTE_2400_BAUD) printFast(100, sy, "2400", ST77XX_WHITE);
-            if (config_byte & CFG_BYTE_3600_BAUD) printFast(100, sy, "3600", ST77XX_WHITE);
+            printFast(8, sy, "Baud Rate", TFT_WHITE);
+            if (config_byte & CFG_BYTE_1200_BAUD) printFast(100, sy, "1200", TFT_WHITE);
+            if (config_byte & CFG_BYTE_2400_BAUD) printFast(100, sy, "2400", TFT_WHITE);
+            if (config_byte & CFG_BYTE_3600_BAUD) printFast(100, sy, "3600", TFT_WHITE);
             break;
           case 2:
-            printFast(8, sy, "Pause at start", ST77XX_WHITE);
-            printFast(108, sy, (config_byte & CFG_BYTE_PAUSE_AT_START) ? " On" : "Off", ST77XX_WHITE);
+            printFast(8, sy, "Pause at start", TFT_WHITE);
+            printFast(108, sy, (config_byte & CFG_BYTE_PAUSE_AT_START) ? " On" : "Off", TFT_WHITE);
             break;
           case 3:
-            printFast(8, sy, "Flip polarity", ST77XX_WHITE);
-            printFast(108, sy, (config_byte & CFG_BYTE_FLIP_POLARITY) ? " On" : "Off", ST77XX_WHITE);
+            printFast(8, sy, "Flip polarity", TFT_WHITE);
+            printFast(108, sy, (config_byte & CFG_BYTE_FLIP_POLARITY) ? " On" : "Off", TFT_WHITE);
             break;
           case 4:
-            printFast(8, sy, "UEF turbo mode", ST77XX_WHITE);
-            printFast(108, sy, (config_byte & CFG_BYTE_UEF_TURBO) ? " On" : "Off", ST77XX_WHITE);
+            printFast(8, sy, "UEF turbo mode", TFT_WHITE);
+            printFast(108, sy, (config_byte & CFG_BYTE_UEF_TURBO) ? " On" : "Off", TFT_WHITE);
             break;
           case 5:
-            printFast(8, sy, "Sound speaker", ST77XX_WHITE);
-            printFast(108, sy, (config_byte & CFG_BYTE_SPEAKER_ENABLE) ? " On" : "Off", ST77XX_WHITE);
+            printFast(8, sy, "Sound speaker", TFT_WHITE);
+            printFast(108, sy, (config_byte & CFG_BYTE_SPEAKER_ENABLE) ? " On" : "Off", TFT_WHITE);
             break;
         }
 
@@ -671,20 +672,17 @@ void config_menu()
 void setup()
 {
   Serial.begin(115200);
-
-  myESPboy.begin(VERSION);
-  myESPboyLED.begin(&myESPboy.mcp);
-  myESPboyLED.off();
-
-  myESPboy.tft.setSwapBytes(true);
-
+  myESPboy.begin("TZX Duino");
+/*
+  //Check OTA2
+  if (myESPboy.getKeys()&PAD_ACT || myESPboy.getKeys()&PAD_ESC) { 
+     terminalGUIobj = new ESPboyTerminalGUI(&myESPboy.tft, &myESPboy.mcp);
+     OTA2obj = new ESPboyOTA2(terminalGUIobj);
+  }
+*/
   pinMode(OUTPUT_PIN, OUTPUT);
-  pinMode(SPEAKER_PIN, OUTPUT);
-
   LowWrite();
-
   LittleFS.begin();
-
   Serial.println("startmsg");
 }
 
